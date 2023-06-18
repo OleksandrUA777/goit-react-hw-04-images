@@ -20,6 +20,8 @@ export const App = () => {
     }
 
     setLoading(true);
+    //щоб два рази не клікнува на кнопку коли додає сторінку
+    setLoadMore(false);
 
     fetchImages(query, page).then(images => {
       setLoading(false);

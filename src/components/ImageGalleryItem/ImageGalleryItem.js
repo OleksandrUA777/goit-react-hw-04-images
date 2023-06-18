@@ -1,48 +1,39 @@
 import PropTypes from 'prop-types';
 
 import { Modal } from 'components/Modal/Modal';
-import { Component } from 'react';
+import { useState } from 'react';
 import { Item, Image } from './ImageGalleryItem.styled';
 
-export class ImageGalleryItem extends Component {
-  state = {
-    isOpen: false,
-  };
+export const ImageGalleryItem = ({
+  image: { webformatURL, largeImageURL, tags },
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
 
-  handleToggleModal = () => {
-    this.setState(prevState => ({ isOpen: !prevState.isOpen }));
+  const handleToggleModal = () => {
+    setIsOpen(prevIsOpen => !prevIsOpen);
   };
-  handleBackDropClick = event => {
+  const handleBackDropClick = event => {
     if (event.target === event.currentTarget) {
-      this.handleToggleModal();
+      handleToggleModal();
     }
   };
-  render() {
-    const {
-      image: { webformatURL, largeImageURL, tags },
-    } = this.props;
-    const { isOpen } = this.state;
-    return (
-      <>
-        <Item className="gallery-item">
-          <Image
-            src={webformatURL}
-            alt={tags}
-            onClick={this.handleToggleModal}
-          />
-        </Item>
-        {isOpen && (
-          <Modal
-            image={largeImageURL}
-            onBackDrop={this.handleBackDropClick}
-            onEscape={this.handleToggleModal}
-            tags={tags}
-          />
-        )}
-      </>
-    );
-  }
-}
+
+  return (
+    <>
+      <Item className="gallery-item">
+        <Image src={webformatURL} alt={tags} onClick={handleToggleModal} />
+      </Item>
+      {isOpen && (
+        <Modal
+          image={largeImageURL}
+          onBackDrop={handleBackDropClick}
+          onEscape={handleToggleModal}
+          tags={tags}
+        />
+      )}
+    </>
+  );
+};
 ImageGalleryItem.propTypes = {
   image: PropTypes.shape({
     webformatURL: PropTypes.string.isRequired,
