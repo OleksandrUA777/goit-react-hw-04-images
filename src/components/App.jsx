@@ -1,85 +1,84 @@
-import { Component } from 'react';
 import { Button } from './Button/Loader';
 import { fetchImages } from './helpers/pixabay-api';
 import { ImageGallery } from './ImageGallery/ImageGallery';
 import { Searchbar } from './Searchbar/Searchbar';
 import { Loader } from './Loader/Loader.styled';
+import { useState, useEffect } from 'react';
 
-export class App extends Component {
-  state = {
-    query: '',
-    page: 1,
-    images: [],
+export const App = () => {
+  const [query, setQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const [images, setImages] = useState([]);
 
-    loading: false,
-    loadMore: false,
-  };
-  componentDidUpdate(prevProps, prevState) {
-    const { page } = this.state;
-    const prevQuery = prevState.query;
-    const currentQuery = this.state.query;
+  const [loading, setLoading] = useState(false);
+  const [loadMore, setLoadMore] = useState(false);
 
-    const prevPage = prevState.page;
-    const currentPage = this.state.page;
-
-    if (currentQuery.trim() === '') {
-      return alert('Введи щось');
+  useEffect(() => {
+    if (query.trim() === '') {
+      return;
+      // alert('Введи щось');
     }
-    if (prevQuery !== currentQuery || prevPage !== currentPage) {
-      this.setState({ loading: true, loadMore: false });
 
-      fetchImages(currentQuery, page).then(images => {
-        this.setState({ loading: false, loadMore: true });
-        console.log(images);
-        if (images.length >= 12) {
-          // this.setState(prevState => ({
-          //   images: [...prevState.images, ...images],
-          // }));
-          this.setImages(images);
-          return;
-        } else if (images.length <= 12) {
-          this.setImages(images);
+    setLoading(true);
 
-          this.setState({ loadMore: false });
-        }
-      });
-    }
-  }
-  setImages = images => {
-    this.setState(prevState => ({
-      images: [...prevState.images, ...images],
-    }));
+    fetchImages(query, page).then(images => {
+      setLoading(false);
+      setLoadMore(true);
+      console.log(images);
+
+      if (images.length >= 12) {
+        addImages(images);
+        return;
+      }
+      if (images.length <= 12 && images.length !== 0) {
+        addImages(images);
+        setLoadMore(false);
+        return;
+      }
+      if (images.length === 0) {
+        alert(`There are no images of ${query}`);
+        setLoadMore(false);
+      }
+    });
+  }, [query, page]);
+
+  const addImages = images => {
+    console.log('set');
+    setImages(prevImages => {
+      return [...prevImages, ...images];
+    });
   };
-  resetData = () => {
-    this.setState({ page: 1, images: [], loadMore: false });
+
+  const resetData = () => {
+    setPage(1);
+    setImages([]);
+    setLoadMore(false);
   };
-  handleSubmit = query => {
-    this.setState({ query });
-    this.resetData();
+  const handleSubmit = query => {
+    if (query.trim() === '') alert('Enter your search query');
+    setQuery(query);
+    resetData();
   };
-  handleLoadMoreClick = () => {
-    this.setState(prevState => ({ page: prevState.page + 1 }));
-    console.log(this.state.page);
+  const handleLoadMoreClick = () => {
+    setPage(prevPage => prevPage + 1);
+    console.log(page);
   };
-  render() {
-    const { images, loading, loadMore } = this.state;
-    return (
-      <>
-        <Searchbar onSubmit={this.handleSubmit} />
-        <ImageGallery images={images} />
-        {loadMore && <Button onClick={this.handleLoadMoreClick} />}
-        {loading && (
-          <Loader
-            height="80"
-            width="80"
-            radius="9"
-            color="green"
-            ariaLabel="loading"
-            wrapperStyle
-            wrapperClass
-          />
-        )}
-      </>
-    );
-  }
-}
+  return (
+    <>
+      <Searchbar onSubmit={handleSubmit} />
+      <ImageGallery images={images} />
+      {loadMore && <Button onClick={handleLoadMoreClick} />}
+      {loading && (
+        <Loader
+          height="80"
+          width="80"
+          radius="9"
+          color="green"
+          ariaLabel="loading"
+          wrapperStyle
+          wrapperClass
+        />
+      )}
+    </>
+  );
+};
